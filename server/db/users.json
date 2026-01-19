@@ -1,0 +1,9 @@
+{
+    "admin": {
+        "password": "admin"
+    },
+    "seller": {
+        "password": "123"
+    },
+    "masterKey": "0000"
+}

@@ -1,0 +1,42 @@
+[
+    {
+        "id": 1,
+        "name": "Élixir d'Or - Sérum",
+        "price": 120,
+        "stock": 50,
+        "category": "Soins",
+        "description": "Sérum régénérant aux particules d'or 24k."
+    },
+    {
+        "id": 2,
+        "name": "Nuit Éternelle - Parfum",
+        "price": 250,
+        "stock": 20,
+        "category": "Parfums",
+        "description": "Fragrance envoûtante aux notes de jasmin et bois de oud."
+    },
+    {
+        "id": 3,
+        "name": "Rouge Velours",
+        "price": 45,
+        "stock": 100,
+        "category": "Maquillage",
+        "description": "Rouge à lèvres mat, tenue 24h, hydratation intense."
+    },
+    {
+        "id": 4,
+        "name": "Crème de la Mer",
+        "price": 300,
+        "stock": 15,
+        "category": "Soins",
+        "description": "Hydratation profonde avec algues marines rares."
+    },
+    {
+        "id": 5,
+        "name": "Poudre de Lune",
+        "price": 80,
+        "stock": 40,
+        "category": "Maquillage",
+        "description": "Highlighter subtil pour un éclat céleste."
+    }
+]
