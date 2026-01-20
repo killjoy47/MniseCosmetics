@@ -199,7 +199,18 @@ app.post('/api/sell', async (req, res) => {
 
 app.get('/api/sales', async (req, res) => {
     try {
-        const sales = await Sale.find().sort({ createdAt: -1 });
+        const { date } = req.query;
+        let query = {};
+
+        if (date) {
+            const startOfDay = new Date(date);
+            startOfDay.setHours(0, 0, 0, 0);
+            const endOfDay = new Date(date);
+            endOfDay.setHours(23, 59, 59, 999);
+            query = { createdAt: { $gte: startOfDay, $lte: endOfDay } };
+        }
+
+        const sales = await Sale.find(query).sort({ createdAt: -1 });
         res.json(sales);
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });

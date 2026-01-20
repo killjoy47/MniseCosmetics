@@ -61,8 +61,9 @@ export const sellProducts = async (items, totalPrice, clientNumber) => {
     }
 };
 
-export const getSales = async () => {
-    const res = await fetch(`${API_URL}/sales`);
+export const getSales = async (date = '') => {
+    const url = date ? `${API_URL}/sales?date=${date}` : `${API_URL}/sales`;
+    const res = await fetch(url);
     return res.json();
 };
 

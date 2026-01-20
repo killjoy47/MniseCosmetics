@@ -9,6 +9,7 @@ const AdminDashboard = ({ onLogout }) => {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [sales, setSales] = useState([]);
+    const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
 
     // Modals
     const [isProdModalOpen, setIsProdModalOpen] = useState(false);
@@ -23,7 +24,6 @@ const AdminDashboard = ({ onLogout }) => {
     useEffect(() => {
         getProducts().then(setProducts);
         getCategories().then(setCategories);
-        getSales().then(setSales);
 
         socket.on('stock_update', (updatedProducts) => {
             setProducts(updatedProducts);
@@ -162,38 +162,66 @@ const AdminDashboard = ({ onLogout }) => {
 
 
             {tab === 'sales' && (
-                <GlassCard style={{ overflow: 'hidden', padding: 0 }}>
-                    <div style={{ padding: '20px', borderBottom: '1px solid #333', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <History color="var(--color-gold)" />
-                        <h2 style={{ fontSize: '1.2rem' }}>Historique des Ventes</h2>
+                <>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginBottom: '30px', alignItems: 'flex-end' }}>
+                        <div style={{ flex: 1, minWidth: '200px' }}>
+                            <label style={{ display: 'block', color: '#888', marginBottom: '10px', fontSize: '0.9rem' }}>Choisir une date</label>
+                            <input
+                                type="date"
+                                value={filterDate}
+                                onChange={e => setFilterDate(e.target.value)}
+                                style={{ ...inputStyle, background: 'rgba(255,255,255,0.05)', borderColor: 'var(--color-gold)' }}
+                            />
+                        </div>
+                        <GlassCard style={{ flex: 2, padding: '20px', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--color-gold)' }}>
+                            <h3 style={{ color: '#888', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '5px' }}>Bilan de la journée</h3>
+                            <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-gold)' }}>
+                                {sales.reduce((acc, s) => acc + s.totalPrice, 0).toLocaleString()} FCFA
+                            </p>
+                        </GlassCard>
                     </div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                        <thead style={{ background: 'rgba(255,255,255,0.05)', color: '#888' }}>
-                            <tr>
-                                <th style={{ padding: '15px 24px' }}>Date</th>
-                                <th style={{ padding: '15px 24px' }}>Client</th>
-                                <th style={{ padding: '15px 24px' }}>Articles</th>
-                                <th style={{ padding: '15px 24px' }}>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sales.map(sale => (
-                                <tr key={sale._id} style={{ borderBottom: '1px solid #333' }}>
-                                    <td style={{ padding: '15px 24px', fontSize: '0.9rem' }}>
-                                        {new Date(sale.createdAt).toLocaleString('fr-FR')}
-                                    </td>
-                                    <td style={{ padding: '15px 24px', fontWeight: 'bold' }}>{sale.clientNumber || 'Anonyme'}</td>
-                                    <td style={{ padding: '15px 24px', color: '#888', fontSize: '0.9rem' }}>
-                                        {sale.items.map(it => `${it.quantity}x ${it.name}`).join(', ')}
-                                    </td>
-                                    <td style={{ padding: '15px 24px', color: 'var(--color-gold)', fontWeight: 'bold' }}>
-                                        {sale.totalPrice.toLocaleString()} FCFA
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </GlassCard>
+
+                    <GlassCard style={{ overflow: 'hidden', padding: 0 }}>
+                        <div style={{ padding: '20px', borderBottom: '1px solid #333', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <History color="var(--color-gold)" />
+                            <h2 style={{ fontSize: '1.2rem' }}>Historique des Ventes ({new Date(filterDate).toLocaleDateString('fr-FR')})</h2>
+                        </div>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
+                                <thead style={{ background: 'rgba(255,255,255,0.05)', color: '#888' }}>
+                                    <tr>
+                                        <th style={{ padding: '15px 24px' }}>Heure</th>
+                                        <th style={{ padding: '15px 24px' }}>Client</th>
+                                        <th style={{ padding: '15px 24px' }}>Articles</th>
+                                        <th style={{ padding: '15px 24px' }}>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {sales.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="4" style={{ padding: '40px', textAlign: 'center', color: '#666' }}>Aucune vente ce jour-là.</td>
+                                        </tr>
+                                    ) : (
+                                        sales.map(sale => (
+                                            <tr key={sale._id} style={{ borderBottom: '1px solid #333' }}>
+                                                <td style={{ padding: '15px 24px', fontSize: '0.9rem' }}>
+                                                    {new Date(sale.createdAt).toLocaleTimeString('fr-FR', { hour: '2h', minute: '2h' })}
+                                                </td>
+                                                <td style={{ padding: '15px 24px', fontWeight: 'bold' }}>{sale.clientNumber || 'Anonyme'}</td>
+                                                <td style={{ padding: '15px 24px', color: '#888', fontSize: '0.9rem' }}>
+                                                    {sale.items.map(it => `${it.quantity}x ${it.name}`).join(', ')}
+                                                </td>
+                                                <td style={{ padding: '15px 24px', color: 'var(--color-gold)', fontWeight: 'bold' }}>
+                                                    {sale.totalPrice.toLocaleString()} FCFA
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </GlassCard>
+                </>
             )}
 
             {tab === 'categories' && (
