@@ -71,8 +71,8 @@ const AdminDashboard = ({ onLogout }) => {
     };
 
     return (
-        <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
-            <header style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px', alignItems: 'center' }}>
+        <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+            <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px', alignItems: 'center' }}>
                 <div>
                     <h1 style={{ color: 'var(--color-gold)', fontFamily: 'Playfair Display' }}>M'NISE COSMETICS</h1>
                     <p style={{ color: '#888' }}>Dashboard Patronne</p>
@@ -104,7 +104,7 @@ const AdminDashboard = ({ onLogout }) => {
 
             {tab === 'products' && (
                 <>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '30px' }}>
+                    <div className="product-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '30px' }}>
                         <GlassCard>
                             <h3 style={{ color: '#888', fontSize: '0.9rem' }}>Total Produits</h3>
                             <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{products.length}</p>
@@ -120,7 +120,7 @@ const AdminDashboard = ({ onLogout }) => {
                         </GoldButton>
                     </div>
 
-                    <GlassCard style={{ overflow: 'hidden', padding: 0 }}>
+                    <GlassCard style={{ overflowX: 'auto', padding: 0 }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                             <thead style={{ background: 'rgba(255,255,255,0.05)', color: '#888' }}>
                                 <tr>
@@ -241,7 +241,7 @@ const AdminDashboard = ({ onLogout }) => {
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
                                 style={inputStyle} required
                             />
-                            <div style={{ display: 'flex', gap: '15px' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
                                 <input
                                     placeholder="Prix (FCFA)" type="number"
                                     value={formData.price}

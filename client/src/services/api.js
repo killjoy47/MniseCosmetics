@@ -44,12 +44,21 @@ export const saveCategories = async (categories) => {
 
 // --- SALES ---
 export const sellProducts = async (items, totalPrice, clientNumber) => {
-    const res = await fetch(`${API_URL}/sell`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, totalPrice, clientNumber }),
-    });
-    return res.json();
+    try {
+        const res = await fetch(`${API_URL}/sell`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items, totalPrice, clientNumber }),
+        });
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            return { success: false, message: errorData.message || `Erreur serveur (${res.status})` };
+        }
+        return await res.json();
+    } catch (err) {
+        console.error('Checkout error:', err);
+        return { success: false, message: "Erreur réseau lors de la vente. Vérifiez votre connexion." };
+    }
 };
 
 export const getSales = async () => {

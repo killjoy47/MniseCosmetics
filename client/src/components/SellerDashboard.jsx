@@ -68,10 +68,10 @@ const SellerDashboard = ({ onLogout }) => {
     };
 
     return (
-        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+        <div className="dashboard-layout" style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
             {/* Product Grid */}
             <div style={{ flex: 1, padding: '30px', overflowY: 'auto' }}>
-                <header style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
+                <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
                     <div>
                         <h1 style={{ color: 'var(--color-gold)', fontFamily: 'Playfair Display' }}>M'NISE COSMETICS</h1>
                         <p style={{ color: '#888' }}>Espace Vente</p>
@@ -80,8 +80,8 @@ const SellerDashboard = ({ onLogout }) => {
                         <LogOut size={16} /> Quitter
                     </button>
                 </header>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
+                2
+                <div className="product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
                     {products.map(p => (
                         <GlassCard
                             key={p.id}
@@ -108,7 +108,7 @@ const SellerDashboard = ({ onLogout }) => {
             </div>
 
             {/* Cart Sidebar */}
-            <GlassCard style={{ width: '400px', margin: '20px', borderRadius: '20px', display: 'flex', flexDirection: 'column' }}>
+            <GlassCard className="sidebar-container" style={{ width: '400px', margin: '20px', borderRadius: '20px', display: 'flex', flexDirection: 'column' }}>
                 <h2 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <ShoppingCart /> Panier
                 </h2>

@@ -90,7 +90,7 @@ const Login = ({ onLogin }) => {
             justifyContent: 'center',
             background: 'radial-gradient(circle at center, #2a2a2a 0%, #1a1a1a 100%)'
         }}>
-            <GlassCard className="login-card" style={{ width: '400px', textAlign: 'center' }}>
+            <GlassCard className="login-card" style={{ width: '90%', maxWidth: '400px', textAlign: 'center' }}>
                 <h1 style={{ marginBottom: '10px', color: 'var(--color-gold)', fontSize: '2.5rem', fontFamily: 'Playfair Display' }}>M'NISE</h1>
                 <h2 style={{ marginBottom: '40px', color: '#fff', fontSize: '1.2rem', letterSpacing: '4px' }}>COSMETICS</h2>
 
