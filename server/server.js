@@ -202,18 +202,24 @@ app.get('/api/sales', async (req, res) => {
         const { date } = req.query;
         let query = {};
 
+        console.log(`[GET /api/sales] Request Date: ${date || 'ALL'}`);
+
         if (date) {
-            // Ensure we capture the full UTC day regardless of string parsing quirks
-            const start = new Date(date);
-            start.setUTCHours(0, 0, 0, 0);
-            const end = new Date(date);
-            end.setUTCHours(23, 59, 59, 999);
+            // Robust UTC parsing
+            const startStr = `${date}T00:00:00.000Z`;
+            const endStr = `${date}T23:59:59.999Z`;
+            const start = new Date(startStr);
+            const end = new Date(endStr);
+
+            console.log(`[GET /api/sales] UTC Range: ${startStr} TO ${endStr}`);
             query = { createdAt: { $gte: start, $lte: end } };
         }
 
         const sales = await Sale.find(query).sort({ createdAt: -1 });
+        console.log(`[GET /api/sales] Found ${sales.length} sales`);
         res.json(sales);
     } catch (err) {
+        console.error(`[GET /api/sales] Error: ${err.message}`);
         res.status(500).json({ success: false, message: err.message });
     }
 });

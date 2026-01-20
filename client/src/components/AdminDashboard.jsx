@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import GlassCard from './ui/GlassCard';
 import GoldButton from './ui/GoldButton';
-import { socket, saveProduct, getProducts, getCategories, saveCategories, getSales } from '../services/api';
-import { Plus, Edit, List, Package, History, AlertTriangle, PlusCircle } from 'lucide-react';
+import { socket, saveProduct, getProducts, getCategories, saveCategories, getSales, getApiUrl } from '../services/api';
+import { Plus, Edit, List, Package, History, AlertTriangle, PlusCircle, Bug } from 'lucide-react';
 
 const AdminDashboard = ({ onLogout }) => {
     const [tab, setTab] = useState('products'); // 'products' | 'categories' | 'sales'
@@ -12,6 +12,7 @@ const AdminDashboard = ({ onLogout }) => {
     const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
     const [isLoadingSales, setIsLoadingSales] = useState(false);
     const [salesError, setSalesError] = useState('');
+    const [debugInfo, setDebugInfo] = useState({ url: getApiUrl(), lastFetch: null });
 
     // Modals
     const [isProdModalOpen, setIsProdModalOpen] = useState(false);
@@ -46,8 +47,10 @@ const AdminDashboard = ({ onLogout }) => {
         try {
             const data = await getSales(filterDate);
             setSales(data);
+            setDebugInfo(prev => ({ ...prev, lastFetch: `${new Date().toLocaleTimeString()} - Received ${data.length} items` }));
         } catch (err) {
-            setSalesError("Erreur lors de la récupération des ventes.");
+            setSalesError(`Erreur: ${err.message}`);
+            setDebugInfo(prev => ({ ...prev, lastFetch: `${new Date().toLocaleTimeString()} - ERROR: ${err.message}` }));
             console.error(err);
         } finally {
             setIsLoadingSales(false);
@@ -352,6 +355,14 @@ const AdminDashboard = ({ onLogout }) => {
                             </table>
                         </div>
                     </GlassCard>
+
+                    <div style={{ marginTop: '30px', padding: '15px', background: 'rgba(0,0,0,0.5)', borderRadius: '10px', fontSize: '0.8rem', color: '#888', border: '1px solid #333' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--color-gold)' }}>
+                            <Bug size={14} /> DEBUG API
+                        </div>
+                        <p><strong>API URL:</strong> {debugInfo.url}</p>
+                        <p><strong>Dernier essai:</strong> {debugInfo.lastFetch || 'Aucun'}</p>
+                    </div>
                 </>
             )}
 

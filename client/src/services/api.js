@@ -10,6 +10,8 @@ const SOCKET_URL = API_URL.replace('/api', '');
 console.log('API_URL target:', API_URL);
 console.log('SOCKET_URL target:', SOCKET_URL);
 
+export const getApiUrl = () => API_URL;
+
 export const socket = io(SOCKET_URL);
 
 // --- PRODUCTS ---
@@ -63,7 +65,9 @@ export const sellProducts = async (items, totalPrice, clientNumber) => {
 
 export const getSales = async (date = '') => {
     const url = date ? `${API_URL}/sales?date=${date}` : `${API_URL}/sales`;
+    console.log(`[API] Fetching sales from: ${url}`);
     const res = await fetch(url);
+    if (!res.ok) throw new Error(`Status ${res.status}`);
     return res.json();
 };
 
