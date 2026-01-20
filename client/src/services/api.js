@@ -1,9 +1,14 @@
 import { io } from 'socket.io-client';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-const SOCKET_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:3001';
+let base_url = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+if (base_url.endsWith('/')) base_url = base_url.slice(0, -1);
+if (!base_url.endsWith('/api')) base_url += '/api';
+
+const API_URL = base_url;
+const SOCKET_URL = API_URL.replace('/api', '');
 
 console.log('API_URL target:', API_URL);
+console.log('SOCKET_URL target:', SOCKET_URL);
 
 export const socket = io(SOCKET_URL);
 
