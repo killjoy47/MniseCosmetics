@@ -38,6 +38,12 @@ const AdminDashboard = ({ onLogout }) => {
         return () => socket.off('stock_update');
     }, []);
 
+    useEffect(() => {
+        if (tab === 'sales') {
+            getSales(filterDate).then(setSales);
+        }
+    }, [tab, filterDate]);
+
     const handleProductSubmit = async (e) => {
         e.preventDefault();
         const product = {
@@ -273,7 +279,10 @@ const AdminDashboard = ({ onLogout }) => {
                     <GlassCard style={{ overflow: 'hidden', padding: 0 }}>
                         <div style={{ padding: '20px', borderBottom: '1px solid #333', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <History color="var(--color-gold)" />
-                            <h2 style={{ fontSize: '1.2rem' }}>Historique des Ventes ({new Date(filterDate).toLocaleDateString('fr-FR')})</h2>
+                            <h2 style={{ fontSize: '1.2rem' }}>
+                                Historique des Ventes
+                                {filterDate ? ` (${new Date(filterDate).toLocaleDateString('fr-FR')})` : ' (Toutes les dates)'}
+                            </h2>
                         </div>
                         <div style={{ overflowX: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
