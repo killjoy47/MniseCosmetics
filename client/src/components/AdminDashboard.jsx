@@ -404,40 +404,55 @@ const AdminDashboard = ({ onLogout }) => {
                             {editingProduct ? 'Modifier Produit' : 'Ajouter Produit'}
                         </h2>
                         <form onSubmit={handleProductSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                            <input
-                                placeholder="Nom du produit"
-                                value={formData.name}
-                                onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                style={inputStyle} required
-                            />
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
+                            <div>
+                                <label style={labelStyle}>Nom du produit</label>
                                 <input
-                                    placeholder="Prix (FCFA)" type="number"
-                                    value={formData.price}
-                                    onChange={e => setFormData({ ...formData, price: e.target.value })}
+                                    placeholder="Nom du produit"
+                                    value={formData.name}
+                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
                                     style={inputStyle} required
-                                />
-                                <input
-                                    placeholder="Stock" type="number"
-                                    value={formData.stock}
-                                    onChange={e => setFormData({ ...formData, stock: e.target.value })}
-                                    style={inputStyle} required
-                                />
-                                <input
-                                    placeholder="Seuil Sécurité" type="number"
-                                    value={formData.securityStock}
-                                    onChange={e => setFormData({ ...formData, securityStock: e.target.value })}
-                                    style={inputStyle}
                                 />
                             </div>
-                            <select
-                                value={formData.category}
-                                onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                style={inputStyle}
-                            >
-                                <option value="">Sélectionner une catégorie</option>
-                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '15px' }}>
+                                <div>
+                                    <label style={labelStyle}>Prix (FCFA)</label>
+                                    <input
+                                        placeholder="Prix (FCFA)" type="number"
+                                        value={formData.price}
+                                        onChange={e => setFormData({ ...formData, price: e.target.value })}
+                                        style={inputStyle} required
+                                    />
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>Stock</label>
+                                    <input
+                                        placeholder="Stock" type="number"
+                                        value={formData.stock}
+                                        onChange={e => setFormData({ ...formData, stock: e.target.value })}
+                                        style={inputStyle} required
+                                    />
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>Seuil Sécurité</label>
+                                    <input
+                                        placeholder="Seuil Sécurité" type="number"
+                                        value={formData.securityStock}
+                                        onChange={e => setFormData({ ...formData, securityStock: e.target.value })}
+                                        style={inputStyle}
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label style={labelStyle}>Catégorie</label>
+                                <select
+                                    value={formData.category}
+                                    onChange={e => setFormData({ ...formData, category: e.target.value })}
+                                    style={inputStyle}
+                                >
+                                    <option value="">Sélectionner une catégorie</option>
+                                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
                             <div style={{ display: 'flex', gap: '10px', marginTop: '10px', justifyContent: 'flex-end' }}>
                                 <button type="button" onClick={closeProdModal} style={{ color: '#888', padding: '10px' }}>Annuler</button>
                                 <GoldButton type="submit">Valider</GoldButton>
