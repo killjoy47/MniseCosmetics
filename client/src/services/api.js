@@ -3,6 +3,8 @@ import { io } from 'socket.io-client';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 const SOCKET_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:3001';
 
+console.log('API_URL target:', API_URL);
+
 export const socket = io(SOCKET_URL);
 
 // --- PRODUCTS ---
@@ -47,12 +49,21 @@ export const sellProducts = async (items, totalPrice) => {
 
 // --- AUTH ---
 export const login = async (role, password) => {
-    const res = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role, password }),
-    });
-    return res.json();
+    try {
+        const res = await fetch(`${API_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role, password }),
+        });
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            return { success: false, message: errorData.message || `Erreur serveur (${res.status})` };
+        }
+        return await res.json();
+    } catch (err) {
+        console.error('Login error:', err);
+        return { success: false, message: "Impossible de contacter le serveur. Vérifiez votre connexion." };
+    }
 };
 
 export const resetPassword = async (masterKey, newAdminPwd, newSellerPwd) => {
