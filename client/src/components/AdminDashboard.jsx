@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import GlassCard from './ui/GlassCard';
 import GoldButton from './ui/GoldButton';
 import { socket, saveProduct, getProducts, getCategories, saveCategories, getSales } from '../services/api';
-import { Plus, Edit, List, Package, History, AlertTriangle } from 'lucide-react';
+import { Plus, Edit, List, Package, History, AlertTriangle, PlusCircle } from 'lucide-react';
 
 const AdminDashboard = ({ onLogout }) => {
     const [tab, setTab] = useState('products'); // 'products' | 'categories' | 'sales'
@@ -20,6 +20,12 @@ const AdminDashboard = ({ onLogout }) => {
 
     // Category Form
     const [newCatName, setNewCatName] = useState('');
+
+    // Replenishment State
+    const [selCategory, setSelCategory] = useState('');
+    const [selProduct, setSelProduct] = useState(null);
+    const [addQty, setAddQty] = useState(1);
+    const [stockSuccess, setStockSuccess] = useState('');
 
     useEffect(() => {
         getProducts().then(setProducts);
@@ -92,6 +98,12 @@ const AdminDashboard = ({ onLogout }) => {
                             Catégories
                         </button>
                         <button
+                            onClick={() => setTab('stock')}
+                            style={{ color: tab === 'stock' ? 'var(--color-gold)' : '#666', fontWeight: 'bold' }}
+                        >
+                            Stock +
+                        </button>
+                        <button
                             onClick={() => setTab('sales')}
                             style={{ color: tab === 'sales' ? 'var(--color-gold)' : '#666', fontWeight: 'bold' }}
                         >
@@ -102,6 +114,75 @@ const AdminDashboard = ({ onLogout }) => {
                 </div>
             </header>
 
+            {tab === 'stock' && (
+                <GlassCard style={{ maxWidth: '600px', margin: '0 auto', padding: '30px' }}>
+                    <h2 style={{ marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <PlusCircle color="var(--color-gold)" /> Réapprovisionnement
+                    </h2>
+                    <p style={{ color: '#888', marginBottom: '20px', fontSize: '0.9rem' }}>
+                        Utilisez ce formulaire pour ajouter de la quantité à un produit existant.
+                    </p>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <div>
+                            <label style={labelStyle}>Catégorie</label>
+                            <select
+                                value={selCategory}
+                                onChange={e => { setSelCategory(e.target.value); setSelProduct(null); }}
+                                style={inputStyle}
+                            >
+                                <option value="">Choisir une catégorie...</option>
+                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label style={labelStyle}>Produit</label>
+                            <select
+                                value={selProduct?.id || ''}
+                                onChange={e => setSelProduct(products.find(p => p.id === e.target.value))}
+                                style={inputStyle}
+                                disabled={!selCategory}
+                            >
+                                <option value="">Choisir un produit...</option>
+                                {products.filter(p => p.category === selCategory).map(p => (
+                                    <option key={p.id} value={p.id}>{p.name} (Stock actuel: {p.stock})</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label style={labelStyle}>Quantité à ajouter</label>
+                            <input
+                                type="number" min="1"
+                                value={addQty}
+                                onChange={e => setAddQty(Number(e.target.value))}
+                                style={inputStyle}
+                            />
+                        </div>
+
+                        {stockSuccess && (
+                            <div style={{ background: 'rgba(75, 201, 130, 0.2)', color: '#4bc982', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                                {stockSuccess}
+                            </div>
+                        )}
+
+                        <GoldButton
+                            disabled={!selProduct || addQty <= 0}
+                            onClick={async () => {
+                                const newStock = selProduct.stock + addQty;
+                                await saveProduct({ ...selProduct, stock: newStock });
+                                setStockSuccess(`Stock mis à jour : ${selProduct.name} (+${addQty})`);
+                                setAddQty(1);
+                                setTimeout(() => setStockSuccess(''), 3000);
+                            }}
+                            style={{ marginTop: '10px' }}
+                        >
+                            Augmenter le stock
+                        </GoldButton>
+                    </div>
+                </GlassCard>
+            )}
             {tab === 'products' && (
                 <>
                     <div className="product-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', marginBottom: '30px' }}>
@@ -160,7 +241,6 @@ const AdminDashboard = ({ onLogout }) => {
                 </>
             )}
 
-
             {tab === 'sales' && (
                 <>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginBottom: '30px', alignItems: 'flex-end' }}>
@@ -205,7 +285,7 @@ const AdminDashboard = ({ onLogout }) => {
                                         sales.map(sale => (
                                             <tr key={sale._id} style={{ borderBottom: '1px solid #333' }}>
                                                 <td style={{ padding: '15px 24px', fontSize: '0.9rem' }}>
-                                                    {new Date(sale.createdAt).toLocaleTimeString('fr-FR', { hour: '2h', minute: '2h' })}
+                                                    {new Date(sale.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                                                 </td>
                                                 <td style={{ padding: '15px 24px', fontWeight: 'bold' }}>{sale.clientNumber || 'Anonyme'}</td>
                                                 <td style={{ padding: '15px 24px', color: '#888', fontSize: '0.9rem' }}>
@@ -305,7 +385,7 @@ const AdminDashboard = ({ onLogout }) => {
                     </GlassCard>
                 </div>
             )}
-        </div>
+        </div >
     );
 };
 
@@ -317,6 +397,13 @@ const inputStyle = {
     color: '#fff',
     outline: 'none',
     width: '100%'
+};
+
+const labelStyle = {
+    display: 'block',
+    fontSize: '0.85rem',
+    color: '#888',
+    marginBottom: '8px'
 };
 
 export default AdminDashboard;
