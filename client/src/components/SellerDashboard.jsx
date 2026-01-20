@@ -9,9 +9,10 @@ const SellerDashboard = ({ onLogout }) => {
     const [cart, setCart] = useState([]);
     const [successMsg, setSuccessMsg] = useState('');
 
-    // Custom Price State
+    // Custom Price & Client State
     const [customTotal, setCustomTotal] = useState('');
     const [isEditingPrice, setIsEditingPrice] = useState(false);
+    const [clientNumber, setClientNumber] = useState('');
 
     useEffect(() => {
         getProducts().then(setProducts);
@@ -46,13 +47,18 @@ const SellerDashboard = ({ onLogout }) => {
 
     const handleCheckout = async () => {
         if (cart.length === 0) return;
+        if (!clientNumber) {
+            alert("Veuillez entrer le numéro du client avant de valider la vente.");
+            return;
+        }
 
         const items = cart.map(item => ({ id: item.product.id, quantity: item.quantity }));
-        const res = await sellProducts(items, finalPrice);
+        const res = await sellProducts(items, finalPrice, clientNumber);
 
         if (res.success) {
             setCart([]);
             setCustomTotal('');
+            setClientNumber('');
             setIsEditingPrice(false);
             setSuccessMsg('Vente effectuée !');
             setTimeout(() => setSuccessMsg(''), 3000);
@@ -93,7 +99,7 @@ const SellerDashboard = ({ onLogout }) => {
                             <h3 style={{ fontSize: '1rem', fontWeight: '500', marginBottom: '5px' }}>{p.name}</h3>
                             <p style={{ color: '#888', fontSize: '0.8rem' }}>{p.category}</p>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', alignItems: 'center' }}>
-                                <span style={{ color: 'var(--color-gold)', fontWeight: 'bold' }}>{p.price} €</span>
+                                <span style={{ color: 'var(--color-gold)', fontWeight: 'bold' }}>{p.price} FCFA</span>
                                 <span style={{ fontSize: '0.8rem', color: '#666' }}>Stock: {p.stock}</span>
                             </div>
                         </GlassCard>
@@ -113,10 +119,10 @@ const SellerDashboard = ({ onLogout }) => {
                         <div key={item.product.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px' }}>
                             <div>
                                 <p style={{ fontWeight: '500' }}>{item.product.name}</p>
-                                <p style={{ fontSize: '0.8rem', color: '#888' }}>{item.quantity} x {item.product.price} €</p>
+                                <p style={{ fontSize: '0.8rem', color: '#888' }}>{item.quantity} x {item.product.price} FCFA</p>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span style={{ fontWeight: 'bold' }}>{item.quantity * item.product.price} €</span>
+                                <span style={{ fontWeight: 'bold' }}>{item.quantity * item.product.price} FCFA</span>
                                 <button onClick={() => removeFromCart(item.product.id)} style={{ color: '#ff6b6b' }}><Trash2 size={16} /></button>
                             </div>
                         </div>
@@ -127,7 +133,7 @@ const SellerDashboard = ({ onLogout }) => {
                     <div style={{ marginBottom: '15px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '1rem', color: '#888' }}>
                             <span>Total Calculé</span>
-                            <span>{calculatedTotal} €</span>
+                            <span>{calculatedTotal} FCFA</span>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '1.4rem', color: 'var(--color-gold)', fontWeight: 'bold' }}>
@@ -145,11 +151,22 @@ const SellerDashboard = ({ onLogout }) => {
                                 />
                             ) : (
                                 <span onClick={() => setIsEditingPrice(true)} style={{ cursor: 'pointer', borderBottom: '1px dashed #666' }}>
-                                    {finalPrice} €
+                                    {finalPrice} FCFA
                                 </span>
                             )}
                         </div>
-                        <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '5px', textAlign: 'right' }}>
+                        <input
+                            type="text"
+                            placeholder="Numéro du client"
+                            value={clientNumber}
+                            onChange={e => setClientNumber(e.target.value)}
+                            style={{
+                                background: 'rgba(255,255,255,0.03)', border: '1px solid #444',
+                                borderRadius: '8px', color: '#fff', padding: '10px',
+                                marginTop: '15px', width: '100%', outline: 'none'
+                            }}
+                        />
+                        <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '10px', textAlign: 'right' }}>
                             {isEditingPrice ? 'Entrez le montant final' : 'Cliquez sur le prix pour modifier'}
                         </p>
                     </div>

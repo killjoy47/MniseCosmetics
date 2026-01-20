@@ -43,12 +43,17 @@ export const saveCategories = async (categories) => {
 };
 
 // --- SALES ---
-export const sellProducts = async (items, totalPrice) => {
+export const sellProducts = async (items, totalPrice, clientNumber) => {
     const res = await fetch(`${API_URL}/sell`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, totalPrice }),
+        body: JSON.stringify({ items, totalPrice, clientNumber }),
     });
+    return res.json();
+};
+
+export const getSales = async () => {
+    const res = await fetch(`${API_URL}/sales`);
     return res.json();
 };
 

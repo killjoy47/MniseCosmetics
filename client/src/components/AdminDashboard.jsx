@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import GlassCard from './ui/GlassCard';
 import GoldButton from './ui/GoldButton';
-import { socket, saveProduct, getProducts, getCategories, saveCategories } from '../services/api';
-import { Plus, Edit, List, Package } from 'lucide-react';
+import { socket, saveProduct, getProducts, getCategories, saveCategories, getSales } from '../services/api';
+import { Plus, Edit, List, Package, History, AlertTriangle } from 'lucide-react';
 
 const AdminDashboard = ({ onLogout }) => {
-    const [tab, setTab] = useState('products'); // 'products' | 'categories'
+    const [tab, setTab] = useState('products'); // 'products' | 'categories' | 'sales'
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [sales, setSales] = useState([]);
 
     // Modals
     const [isProdModalOpen, setIsProdModalOpen] = useState(false);
@@ -22,6 +23,7 @@ const AdminDashboard = ({ onLogout }) => {
     useEffect(() => {
         getProducts().then(setProducts);
         getCategories().then(setCategories);
+        getSales().then(setSales);
 
         socket.on('stock_update', (updatedProducts) => {
             setProducts(updatedProducts);
@@ -36,7 +38,8 @@ const AdminDashboard = ({ onLogout }) => {
             ...formData,
             id: editingProduct ? editingProduct.id : undefined,
             price: Number(formData.price),
-            stock: Number(formData.stock)
+            stock: Number(formData.stock),
+            securityStock: Number(formData.securityStock || 0)
         };
         await saveProduct(product);
         closeProdModal();
@@ -57,7 +60,7 @@ const AdminDashboard = ({ onLogout }) => {
             setFormData(product);
         } else {
             setEditingProduct(null);
-            setFormData({ name: '', price: '', stock: '', category: categories[0] || '' });
+            setFormData({ name: '', price: '', stock: '', category: categories[0] || '', securityStock: '' });
         }
         setIsProdModalOpen(true);
     };
@@ -88,6 +91,12 @@ const AdminDashboard = ({ onLogout }) => {
                         >
                             Catégories
                         </button>
+                        <button
+                            onClick={() => setTab('sales')}
+                            style={{ color: tab === 'sales' ? 'var(--color-gold)' : '#666', fontWeight: 'bold' }}
+                        >
+                            Historique
+                        </button>
                     </nav>
                     <button onClick={onLogout} style={{ color: '#888', textDecoration: 'underline' }}>Déconnexion</button>
                 </div>
@@ -103,7 +112,7 @@ const AdminDashboard = ({ onLogout }) => {
                         <GlassCard>
                             <h3 style={{ color: '#888', fontSize: '0.9rem' }}>Valeur Stock</h3>
                             <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-gold)' }}>
-                                {products.reduce((acc, p) => acc + (p.price * p.stock), 0).toLocaleString()} €
+                                {products.reduce((acc, p) => acc + (p.price * p.stock), 0).toLocaleString()} FCFA
                             </p>
                         </GlassCard>
                         <GoldButton onClick={() => openProdModal()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
@@ -127,8 +136,17 @@ const AdminDashboard = ({ onLogout }) => {
                                     <tr key={p.id} style={{ borderBottom: '1px solid #333' }}>
                                         <td style={{ padding: '15px 24px', fontWeight: '500' }}>{p.name}</td>
                                         <td style={{ padding: '15px 24px', color: '#888' }}>{p.category}</td>
-                                        <td style={{ padding: '15px 24px' }}>{p.price} €</td>
-                                        <td style={{ padding: '15px 24px', color: p.stock < 5 ? '#ff6b6b' : 'inherit' }}>{p.stock}</td>
+                                        <td style={{ padding: '15px 24px' }}>{p.price.toLocaleString()} FCFA</td>
+                                        <td style={{ padding: '15px 24px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <div style={{
+                                                    width: '10px', height: '10px', borderRadius: '50%',
+                                                    background: p.stock === 0 ? '#ff4757' : (p.stock <= p.securityStock ? '#ffa502' : '#2ed573')
+                                                }}></div>
+                                                <span>{p.stock}</span>
+                                                {p.stock <= p.securityStock && p.stock > 0 && <AlertTriangle size={14} color="#ffa502" />}
+                                            </div>
+                                        </td>
                                         <td style={{ padding: '15px 24px' }}>
                                             <button onClick={() => openProdModal(p)} style={{ color: 'var(--color-gold)' }}>
                                                 <Edit size={18} />
@@ -140,6 +158,42 @@ const AdminDashboard = ({ onLogout }) => {
                         </table>
                     </GlassCard>
                 </>
+            )}
+
+
+            {tab === 'sales' && (
+                <GlassCard style={{ overflow: 'hidden', padding: 0 }}>
+                    <div style={{ padding: '20px', borderBottom: '1px solid #333', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <History color="var(--color-gold)" />
+                        <h2 style={{ fontSize: '1.2rem' }}>Historique des Ventes</h2>
+                    </div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                        <thead style={{ background: 'rgba(255,255,255,0.05)', color: '#888' }}>
+                            <tr>
+                                <th style={{ padding: '15px 24px' }}>Date</th>
+                                <th style={{ padding: '15px 24px' }}>Client</th>
+                                <th style={{ padding: '15px 24px' }}>Articles</th>
+                                <th style={{ padding: '15px 24px' }}>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {sales.map(sale => (
+                                <tr key={sale._id} style={{ borderBottom: '1px solid #333' }}>
+                                    <td style={{ padding: '15px 24px', fontSize: '0.9rem' }}>
+                                        {new Date(sale.createdAt).toLocaleString('fr-FR')}
+                                    </td>
+                                    <td style={{ padding: '15px 24px', fontWeight: 'bold' }}>{sale.clientNumber || 'Anonyme'}</td>
+                                    <td style={{ padding: '15px 24px', color: '#888', fontSize: '0.9rem' }}>
+                                        {sale.items.map(it => `${it.quantity}x ${it.name}`).join(', ')}
+                                    </td>
+                                    <td style={{ padding: '15px 24px', color: 'var(--color-gold)', fontWeight: 'bold' }}>
+                                        {sale.totalPrice.toLocaleString()} FCFA
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </GlassCard>
             )}
 
             {tab === 'categories' && (
@@ -189,7 +243,7 @@ const AdminDashboard = ({ onLogout }) => {
                             />
                             <div style={{ display: 'flex', gap: '15px' }}>
                                 <input
-                                    placeholder="Prix" type="number"
+                                    placeholder="Prix (FCFA)" type="number"
                                     value={formData.price}
                                     onChange={e => setFormData({ ...formData, price: e.target.value })}
                                     style={inputStyle} required
@@ -199,6 +253,12 @@ const AdminDashboard = ({ onLogout }) => {
                                     value={formData.stock}
                                     onChange={e => setFormData({ ...formData, stock: e.target.value })}
                                     style={inputStyle} required
+                                />
+                                <input
+                                    placeholder="Seuil Sécurité" type="number"
+                                    value={formData.securityStock}
+                                    onChange={e => setFormData({ ...formData, securityStock: e.target.value })}
+                                    style={inputStyle}
                                 />
                             </div>
                             <select

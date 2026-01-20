@@ -4,7 +4,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const { Product, Category, User } = require('./models');
+const { Product, Category, User, Sale } = require('./models');
 
 const app = express();
 const server = http.createServer(app);
@@ -95,24 +95,25 @@ app.get('/api/products', async (req, res) => {
         name: p.name,
         price: p.price,
         stock: p.stock,
-        category: p.category
+        category: p.category,
+        securityStock: p.securityStock || 0
     }));
     res.json(mapped);
 });
 
 app.post('/api/products', async (req, res) => {
-    const { id, name, price, stock, category } = req.body;
+    const { id, name, price, stock, category, securityStock } = req.body;
     try {
         if (id) {
-            await Product.findByIdAndUpdate(id, { name, price, stock, category });
+            await Product.findByIdAndUpdate(id, { name, price, stock, category, securityStock });
         } else {
-            await Product.create({ name, price, stock, category });
+            await Product.create({ name, price, stock, category, securityStock });
         }
 
         const products = await Product.find();
         const mapped = products.map(p => ({
             id: p._id,
-            name: p.name, price: p.price, stock: p.stock, category: p.category
+            name: p.name, price: p.price, stock: p.stock, category: p.category, securityStock: p.securityStock || 0
         }));
 
         io.emit('stock_update', mapped);
@@ -150,11 +151,12 @@ app.post('/api/categories', async (req, res) => {
 
 // --- SALES ---
 app.post('/api/sell', async (req, res) => {
-    const { items, totalPrice } = req.body;
+    const { items, totalPrice, clientNumber } = req.body;
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
+        const soldItems = [];
         for (const item of items) {
             const product = await Product.findById(item.id).session(session);
             if (!product || product.stock < item.quantity) {
@@ -162,14 +164,28 @@ app.post('/api/sell', async (req, res) => {
             }
             product.stock -= item.quantity;
             await product.save({ session });
+
+            soldItems.push({
+                productId: product._id,
+                name: product.name,
+                price: product.price,
+                quantity: item.quantity
+            });
         }
+
+        const sale = new Sale({
+            clientNumber,
+            items: soldItems,
+            totalPrice
+        });
+        await sale.save({ session });
 
         await session.commitTransaction();
         session.endSession();
 
         const products = await Product.find();
         const mapped = products.map(p => ({
-            id: p._id, name: p.name, price: p.price, stock: p.stock, category: p.category
+            id: p._id, name: p.name, price: p.price, stock: p.stock, category: p.category, securityStock: p.securityStock || 0
         }));
         io.emit('stock_update', mapped);
 
@@ -181,11 +197,20 @@ app.post('/api/sell', async (req, res) => {
     }
 });
 
+app.get('/api/sales', async (req, res) => {
+    try {
+        const sales = await Sale.find().sort({ createdAt: -1 });
+        res.json(sales);
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 io.on('connection', async (socket) => {
     console.log('Client connected');
     const products = await Product.find();
     const mapped = products.map(p => ({
-        id: p._id, name: p.name, price: p.price, stock: p.stock, category: p.category
+        id: p._id, name: p.name, price: p.price, stock: p.stock, category: p.category, securityStock: p.securityStock || 0
     }));
     socket.emit('stock_update', mapped);
 });
