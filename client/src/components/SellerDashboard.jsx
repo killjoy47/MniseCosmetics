@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import GlassCard from './ui/GlassCard';
 import GoldButton from './ui/GoldButton';
 import { socket, getProducts, sellProducts, getCategories } from '../services/api';
-import { ShoppingCart, Check, Trash2, LogOut, Tags, AlertTriangle, Package, PlusCircle } from 'lucide-react';
+import { ShoppingCart, Check, Trash2, LogOut, Tags, AlertTriangle, Package, PlusCircle, Search } from 'lucide-react';
 
 const SellerDashboard = ({ onLogout }) => {
     const [products, setProducts] = useState([]);
@@ -21,6 +21,8 @@ const SellerDashboard = ({ onLogout }) => {
     const [selCategory, setSelCategory] = useState('');
     const [selProduct, setSelProduct] = useState(null);
     const [selQuantity, setSelQuantity] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showResults, setShowResults] = useState(false);
 
     useEffect(() => {
         getProducts().then(setProducts);
@@ -81,14 +83,19 @@ const SellerDashboard = ({ onLogout }) => {
     const handleQuickAdd = () => {
         if (!selProduct || selQuantity <= 0) return;
         addToCart(selProduct);
-        // If they want more than 1 via the dropdown, we need to adjust addToCart or repeat it
-        // Simpler for now: just add once, or loop
         if (selQuantity > 1) {
             for (let i = 1; i < selQuantity; i++) {
                 addToCart(selProduct);
             }
         }
+        setSearchTerm(''); // Clear search after adding
+        setSelProduct(null);
     };
+
+    const searchResults = products.filter(p =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.category.toLowerCase().includes(searchTerm.toLowerCase())
+    ).slice(0, 5); // Limit suggestions
 
     return (
         <div className="dashboard-layout">
@@ -104,14 +111,70 @@ const SellerDashboard = ({ onLogout }) => {
                     </button>
                 </header>
 
-                {/* Structured Selection Form */}
+                {/* Structured Selection & Search Form */}
                 <GlassCard style={{ padding: '20px', marginBottom: '30px', background: 'rgba(212, 175, 55, 0.05)', borderRadius: '16px', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'flex-end' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'flex-end', position: 'relative' }}>
+
+                        {/* Search Input */}
+                        <div style={{ flex: '1 1 100%', marginBottom: '10px', position: 'relative' }}>
+                            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-gold)', marginBottom: '5px' }}>
+                                <Search size={14} style={{ verticalAlign: 'middle', marginRight: '5px' }} /> Recherche Rapide (Nom ou Catégorie)
+                            </label>
+                            <input
+                                placeholder="Tapez le nom du produit..."
+                                value={searchTerm}
+                                onChange={e => {
+                                    setSearchTerm(e.target.value);
+                                    setShowResults(true);
+                                }}
+                                onFocus={() => setShowResults(true)}
+                                style={selectStyle}
+                            />
+                            {showResults && searchTerm && (
+                                <div style={{
+                                    position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
+                                    background: '#1a1a1a', border: '1px solid #444', borderRadius: '8px',
+                                    marginTop: '5px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', overflow: 'hidden'
+                                }}>
+                                    {searchResults.length === 0 ? (
+                                        <div style={{ padding: '15px', color: '#666', fontSize: '0.9rem' }}>Aucun produit trouvé</div>
+                                    ) : (
+                                        searchResults.map(p => (
+                                            <div
+                                                key={p.id}
+                                                onClick={() => {
+                                                    setSelProduct(p);
+                                                    setSearchTerm(p.name);
+                                                    setShowResults(false);
+                                                }}
+                                                style={{
+                                                    padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #333',
+                                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                                    background: selProduct?.id === p.id ? 'rgba(212, 175, 55, 0.1)' : 'transparent'
+                                                }}
+                                                onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                                                onMouseOut={e => e.currentTarget.style.background = selProduct?.id === p.id ? 'rgba(212, 175, 55, 0.1)' : 'transparent'}
+                                            >
+                                                <div>
+                                                    <div style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{p.name}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#666' }}>{p.category}</div>
+                                                </div>
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <div style={{ color: 'var(--color-gold)', fontWeight: 'bold' }}>{p.price} FCFA</div>
+                                                    <div style={{ fontSize: '0.7rem', color: p.stock <= (p.securityStock || 0) ? '#ffa502' : '#888' }}>Stock: {p.stock}</div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
                         <div style={{ flex: 1, minWidth: '150px' }}>
-                            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-gold)', marginBottom: '5px' }}>Catégorie</label>
+                            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-gold)', marginBottom: '5px' }}>OU Catégorie</label>
                             <select
                                 value={selCategory}
-                                onChange={e => { setSelCategory(e.target.value); setSelProduct(null); }}
+                                onChange={e => { setSelCategory(e.target.value); setSelProduct(null); setSearchTerm(''); }}
                                 style={selectStyle}
                             >
                                 <option value="">Choisir...</option>
@@ -122,7 +185,11 @@ const SellerDashboard = ({ onLogout }) => {
                             <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-gold)', marginBottom: '5px' }}>Produit</label>
                             <select
                                 value={selProduct?.id || ''}
-                                onChange={e => setSelProduct(products.find(p => p.id === e.target.value))}
+                                onChange={e => {
+                                    const p = products.find(prod => prod.id === e.target.value);
+                                    setSelProduct(p);
+                                    if (p) setSearchTerm(p.name);
+                                }}
                                 style={selectStyle}
                             >
                                 <option value="">Choisir...</option>
