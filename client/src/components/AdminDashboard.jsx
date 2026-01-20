@@ -71,7 +71,7 @@ const AdminDashboard = ({ onLogout }) => {
     };
 
     return (
-        <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="main-content" style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px', alignItems: 'center' }}>
                 <div>
                     <h1 style={{ color: 'var(--color-gold)', fontFamily: 'Playfair Display' }}>M'NISE COSMETICS</h1>
@@ -104,19 +104,19 @@ const AdminDashboard = ({ onLogout }) => {
 
             {tab === 'products' && (
                 <>
-                    <div className="product-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-                        <GlassCard>
-                            <h3 style={{ color: '#888', fontSize: '0.9rem' }}>Total Produits</h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{products.length}</p>
+                    <div className="product-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', marginBottom: '30px' }}>
+                        <GlassCard style={{ padding: '15px' }}>
+                            <h3 style={{ color: '#888', fontSize: '0.8rem' }}>Total Produits</h3>
+                            <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{products.length}</p>
                         </GlassCard>
-                        <GlassCard>
-                            <h3 style={{ color: '#888', fontSize: '0.9rem' }}>Valeur Stock</h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-gold)' }}>
+                        <GlassCard style={{ padding: '15px' }}>
+                            <h3 style={{ color: '#888', fontSize: '0.8rem' }}>Valeur Stock</h3>
+                            <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-gold)' }}>
                                 {products.reduce((acc, p) => acc + (p.price * p.stock), 0).toLocaleString()} FCFA
                             </p>
                         </GlassCard>
-                        <GoldButton onClick={() => openProdModal()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                            <Plus size={24} /> Nouveau Produit
+                        <GoldButton onClick={() => openProdModal()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.9rem' }}>
+                            <Plus size={20} /> Nouveau
                         </GoldButton>
                     </div>
 

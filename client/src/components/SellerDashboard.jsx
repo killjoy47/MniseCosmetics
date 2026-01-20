@@ -13,6 +13,7 @@ const SellerDashboard = ({ onLogout }) => {
     const [customTotal, setCustomTotal] = useState('');
     const [isEditingPrice, setIsEditingPrice] = useState(false);
     const [clientNumber, setClientNumber] = useState('');
+    const [mobileTab, setMobileTab] = useState('products'); // 'products' | 'cart'
 
     useEffect(() => {
         getProducts().then(setProducts);
@@ -68,9 +69,9 @@ const SellerDashboard = ({ onLogout }) => {
     };
 
     return (
-        <div className="dashboard-layout" style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-            {/* Product Grid */}
-            <div style={{ flex: 1, padding: '30px', overflowY: 'auto' }}>
+        <div className="dashboard-layout">
+            {/* Main Content (Products) */}
+            <div className="main-content" style={{ display: (window.innerWidth > 1024 || mobileTab === 'products') ? 'block' : 'none' }}>
                 <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
                     <div>
                         <h1 style={{ color: 'var(--color-gold)', fontFamily: 'Playfair Display' }}>M'NISE COSMETICS</h1>
@@ -85,28 +86,32 @@ const SellerDashboard = ({ onLogout }) => {
                     {products.map(p => (
                         <GlassCard
                             key={p.id}
+                            className="premium-card"
                             onClick={() => addToCart(p)}
                             style={{
                                 cursor: p.stock > 0 ? 'pointer' : 'not-allowed',
                                 opacity: p.stock > 0 ? 1 : 0.5,
-                                transition: 'transform 0.1s',
-                                border: '1px solid rgba(255,255,255,0.05)'
+                                transition: 'all 0.2s ease',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                                background: 'rgba(255,255,255,0.03)',
+                                borderRadius: '16px'
                             }}
-                            onMouseEnter={(e) => p.stock > 0 && (e.currentTarget.style.transform = 'scale(1.02)')}
+                            onMouseEnter={(e) => p.stock > 0 && (e.currentTarget.style.transform = 'translateY(-5px)')}
                             onMouseLeave={(e) => p.stock > 0 && (e.currentTarget.style.transform = 'scale(1)')}
                         >
-                            <div style={{ height: '80px', background: '#222', borderRadius: '8px', marginBottom: '10px' }}></div>
-                            <h3 style={{ fontSize: '1rem', fontWeight: '500', marginBottom: '5px' }}>{p.name}</h3>
-                            <p style={{ color: '#888', fontSize: '0.8rem' }}>{p.category}</p>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', alignItems: 'center' }}>
-                                <span style={{ color: 'var(--color-gold)', fontWeight: 'bold' }}>{p.price} FCFA</span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                    <div style={{
-                                        width: '8px', height: '8px', borderRadius: '50%',
-                                        background: p.stock === 0 ? '#ff4757' : (p.stock <= p.securityStock ? '#ffa502' : '#2ed573')
-                                    }}></div>
-                                    <span style={{ fontSize: '0.8rem', color: '#666' }}>Stock: {p.stock}</span>
-                                    {p.stock <= p.securityStock && p.stock > 0 && <AlertTriangle size={12} color="#ffa502" />}
+                            <div style={{ flex: 1 }}></div>
+                            <div>
+                                <h3 style={{ fontSize: '0.95rem', fontWeight: 'bold', marginBottom: '2px', color: '#fff' }}>{p.name}</h3>
+                                <p style={{ color: '#666', fontSize: '0.75rem', marginBottom: '8px' }}>{p.category}</p>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ color: 'var(--color-gold)', fontWeight: 'bold', fontSize: '1rem' }}>{p.price} FCFA</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <div style={{
+                                            width: '6px', height: '6px', borderRadius: '50%',
+                                            background: p.stock === 0 ? '#ff4757' : (p.stock <= p.securityStock ? '#ffa502' : '#2ed573')
+                                        }}></div>
+                                        <span style={{ fontSize: '0.7rem', color: '#888' }}>{p.stock}</span>
+                                    </div>
                                 </div>
                             </div>
                         </GlassCard>
@@ -115,10 +120,15 @@ const SellerDashboard = ({ onLogout }) => {
             </div>
 
             {/* Cart Sidebar */}
-            <GlassCard className="sidebar-container" style={{ width: '400px', margin: '20px', borderRadius: '20px', display: 'flex', flexDirection: 'column' }}>
-                <h2 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <ShoppingCart /> Panier
-                </h2>
+            <GlassCard className="sidebar-container" style={{ display: (window.innerWidth > 1024 || mobileTab === 'cart') ? 'flex' : 'none', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
+                        <ShoppingCart /> Panier
+                    </h2>
+                    {window.innerWidth <= 1024 && (
+                        <button onClick={() => setMobileTab('products')} style={{ color: 'var(--color-gold)', fontSize: '0.9rem' }}>Retour</button>
+                    )}
+                </div>
 
                 <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {cart.length === 0 && <p style={{ color: '#666', textAlign: 'center', marginTop: '50px' }}>Le panier est vide</p>}
@@ -189,6 +199,40 @@ const SellerDashboard = ({ onLogout }) => {
                     </GoldButton>
                 </div>
             </GlassCard>
+
+            {/* Mobile Bottom Navigation Bar */}
+            {window.innerWidth <= 1024 && (
+                <div style={{
+                    position: 'fixed', bottom: 0, left: 0, right: 0,
+                    background: 'rgba(26,26,26,0.95)', borderTop: '1px solid #333',
+                    padding: '10px 20px', display: 'flex', justifyContent: 'space-around',
+                    backdropFilter: 'blur(10px)', zIndex: 1000
+                }}>
+                    <button
+                        onClick={() => setMobileTab('products')}
+                        style={{ color: mobileTab === 'products' ? 'var(--color-gold)' : '#666', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}
+                    >
+                        <ShoppingCart size={20} />
+                        <span style={{ fontSize: '0.7rem' }}>Boutique</span>
+                    </button>
+                    <button
+                        onClick={() => setMobileTab('cart')}
+                        style={{ color: mobileTab === 'cart' ? 'var(--color-gold)' : '#666', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', position: 'relative' }}
+                    >
+                        <div style={{ position: 'relative' }}>
+                            <Tags size={20} />
+                            {cart.length > 0 && (
+                                <span style={{
+                                    position: 'absolute', top: '-5px', right: '-10px',
+                                    background: 'var(--color-gold)', color: '#000',
+                                    fontSize: '0.6rem', padding: '2px 5px', borderRadius: '10px', fontWeight: 'bold'
+                                }}>{cart.length}</span>
+                            )}
+                        </div>
+                        <span style={{ fontSize: '0.7rem' }}>Panier</span>
+                    </button>
+                </div>
+            )}
         </div>
     );
 };
