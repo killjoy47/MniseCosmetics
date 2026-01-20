@@ -203,10 +203,12 @@ app.get('/api/sales', async (req, res) => {
         let query = {};
 
         if (date) {
-            // date is YYYY-MM-DD
-            const startOfDay = new Date(`${date}T00:00:00.000Z`);
-            const endOfDay = new Date(`${date}T23:59:59.999Z`);
-            query = { createdAt: { $gte: startOfDay, $lte: endOfDay } };
+            // Ensure we capture the full UTC day regardless of string parsing quirks
+            const start = new Date(date);
+            start.setUTCHours(0, 0, 0, 0);
+            const end = new Date(date);
+            end.setUTCHours(23, 59, 59, 999);
+            query = { createdAt: { $gte: start, $lte: end } };
         }
 
         const sales = await Sale.find(query).sort({ createdAt: -1 });
