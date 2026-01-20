@@ -3,6 +3,43 @@ const { Product, Sale } = require('./models');
 const parseAssistantQuery = async (query, role) => {
     const q = query.toLowerCase().trim();
 
+    // --- WRITE ACTIONS (Admin Only) ---
+    if (role === 'admin') {
+        // Change Name: e.g. "Change le nom de Bosie en Bosie Gold"
+        if (q.includes('change') && q.includes('nom') && q.includes('en')) {
+            const match = q.match(/change le nom de (.+) en (.+)/i);
+            if (match) {
+                const oldName = match[1].trim();
+                const newName = match[2].trim();
+                const product = await Product.findOne({ name: new RegExp(`^${oldName}$`, 'i') });
+                if (product) {
+                    product.name = newName;
+                    await product.save();
+                    return `C'est fait ! Le produit **${oldName}** s'appelle désormais **${newName}**. ✅`;
+                }
+                return `Désolé, je n'ai pas trouvé de produit nommé "${oldName}".`;
+            }
+        }
+
+        // Add Stock: e.g. "Ajoute 10 au stock de Bosie"
+        if (q.includes('ajoute') && q.includes('stock')) {
+            const match = q.match(/ajoute (\d+) (au stock de|de) (.+)/i);
+            if (match) {
+                const amount = parseInt(match[1]);
+                const prodName = match[3].trim();
+                const product = await Product.findOne({ name: new RegExp(`^${prodName}$`, 'i') });
+                if (product) {
+                    product.stock += amount;
+                    await product.save();
+                    return `Parfait ! J'ai ajouté ${amount} unités. Le stock de **${product.name}** est maintenant de **${product.stock}**. ✅`;
+                }
+                return `Je n'ai pas trouvé le produit "${prodName}" pour ajouter du stock.`;
+            }
+        }
+    } else if (q.includes('ajoute') || q.includes('change') || q.includes('modifie')) {
+        return "Désolé, seule la patronne peut modifier les données via l'assistant. 🔐";
+    }
+
     // --- STOCK QUERIES ---
     if (q.includes('stock') || q.includes('reste') || q.includes('combien')) {
         const products = await Product.find();
@@ -50,7 +87,7 @@ const parseAssistantQuery = async (query, role) => {
         return `Le bilan pour **${dateLabel}** est de **${total.toLocaleString()} FCFA** (${sales.length} ventes).`;
     }
 
-    return "Je ne suis pas sûr de comprendre. Je peux vous aider sur les **stocks** ou le **bilan des ventes**. Essayez : 'Stock Bella' ou 'Bilan aujourd'hui'.";
+    return "Je ne suis pas sûr de comprendre. Je peux vous aider sur les **stocks** ou le **bilan des ventes**. Essayez : 'Stock Bella', 'Ajoute 5 au stock de Bosie' ou 'Bilan aujourd'hui'.";
 };
 
 module.exports = { parseAssistantQuery };

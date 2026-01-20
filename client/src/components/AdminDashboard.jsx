@@ -63,6 +63,19 @@ const AdminDashboard = ({ onLogout }) => {
 
     const handleProductSubmit = async (e) => {
         e.preventDefault();
+
+        // DUPLICATE CHECK: Same name in same category
+        const isDuplicate = products.some(p =>
+            p.category === formData.category &&
+            p.name.toLowerCase() === formData.name.toLowerCase() &&
+            p.id !== (editingProduct && editingProduct.id)
+        );
+
+        if (isDuplicate) {
+            alert(`Erreur : Le produit "${formData.name}" existe déjà dans la catégorie "${formData.category}".`);
+            return;
+        }
+
         const product = {
             ...formData,
             id: editingProduct ? editingProduct.id : undefined,
