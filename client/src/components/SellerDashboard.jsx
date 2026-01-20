@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import GlassCard from './ui/GlassCard';
 import GoldButton from './ui/GoldButton';
 import { socket, getProducts, sellProducts } from '../services/api';
-import { ShoppingCart, Check, Trash2, LogOut, Tags } from 'lucide-react';
+import { ShoppingCart, Check, Trash2, LogOut, Tags, AlertTriangle } from 'lucide-react';
 
 const SellerDashboard = ({ onLogout }) => {
     const [products, setProducts] = useState([]);
@@ -80,7 +80,7 @@ const SellerDashboard = ({ onLogout }) => {
                         <LogOut size={16} /> Quitter
                     </button>
                 </header>
-                2
+
                 <div className="product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
                     {products.map(p => (
                         <GlassCard
@@ -100,7 +100,14 @@ const SellerDashboard = ({ onLogout }) => {
                             <p style={{ color: '#888', fontSize: '0.8rem' }}>{p.category}</p>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', alignItems: 'center' }}>
                                 <span style={{ color: 'var(--color-gold)', fontWeight: 'bold' }}>{p.price} FCFA</span>
-                                <span style={{ fontSize: '0.8rem', color: '#666' }}>Stock: {p.stock}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                    <div style={{
+                                        width: '8px', height: '8px', borderRadius: '50%',
+                                        background: p.stock === 0 ? '#ff4757' : (p.stock <= p.securityStock ? '#ffa502' : '#2ed573')
+                                    }}></div>
+                                    <span style={{ fontSize: '0.8rem', color: '#666' }}>Stock: {p.stock}</span>
+                                    {p.stock <= p.securityStock && p.stock > 0 && <AlertTriangle size={12} color="#ffa502" />}
+                                </div>
                             </div>
                         </GlassCard>
                     ))}
