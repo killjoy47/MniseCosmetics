@@ -10,6 +10,8 @@ const AdminDashboard = ({ onLogout }) => {
     const [categories, setCategories] = useState([]);
     const [sales, setSales] = useState([]);
     const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+    const [isLoadingSales, setIsLoadingSales] = useState(false);
+    const [salesError, setSalesError] = useState('');
 
     // Modals
     const [isProdModalOpen, setIsProdModalOpen] = useState(false);
@@ -38,9 +40,23 @@ const AdminDashboard = ({ onLogout }) => {
         return () => socket.off('stock_update');
     }, []);
 
+    const fetchSales = async () => {
+        setIsLoadingSales(true);
+        setSalesError('');
+        try {
+            const data = await getSales(filterDate);
+            setSales(data);
+        } catch (err) {
+            setSalesError("Erreur lors de la récupération des ventes.");
+            console.error(err);
+        } finally {
+            setIsLoadingSales(false);
+        }
+    };
+
     useEffect(() => {
         if (tab === 'sales') {
-            getSales(filterDate).then(setSales);
+            fetchSales();
         }
     }, [tab, filterDate]);
 
@@ -254,19 +270,28 @@ const AdminDashboard = ({ onLogout }) => {
                 <>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginBottom: '30px', alignItems: 'flex-end' }}>
                         <div style={{ flex: 1, minWidth: '200px' }}>
-                            <label style={{ display: 'block', color: '#888', marginBottom: '10px', fontSize: '0.9rem' }}>Choisir une date</label>
+                            <label htmlFor="sales-date-picker" style={{ display: 'block', color: '#888', marginBottom: '10px', fontSize: '0.9rem' }}>Choisir une date</label>
                             <input
+                                id="sales-date-picker"
                                 type="date"
                                 value={filterDate}
                                 onChange={e => setFilterDate(e.target.value)}
                                 style={{ ...inputStyle, background: 'rgba(255,255,255,0.05)', borderColor: 'var(--color-gold)' }}
                             />
-                            <button
-                                onClick={() => setFilterDate('')}
-                                style={{ marginTop: '10px', fontSize: '0.8rem', color: 'var(--color-gold)', textDecoration: 'underline' }}
-                            >
-                                Tout voir / Toutes les dates
-                            </button>
+                            <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginTop: '10px' }}>
+                                <button
+                                    onClick={() => setFilterDate('')}
+                                    style={{ fontSize: '0.8rem', color: 'var(--color-gold)', textDecoration: 'underline' }}
+                                >
+                                    Tout voir
+                                </button>
+                                <button
+                                    onClick={fetchSales}
+                                    style={{ fontSize: '0.8rem', color: '#888', textDecoration: 'underline' }}
+                                >
+                                    Actualiser
+                                </button>
+                            </div>
                         </div>
                         <GlassCard style={{ flex: 2, padding: '20px', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--color-gold)' }}>
                             <h3 style={{ color: '#888', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '5px' }}>Bilan de la journée</h3>
@@ -295,7 +320,15 @@ const AdminDashboard = ({ onLogout }) => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {sales.length === 0 ? (
+                                    {isLoadingSales ? (
+                                        <tr>
+                                            <td colSpan="4" style={{ padding: '40px', textAlign: 'center', color: 'var(--color-gold)' }}>Chargement des ventes...</td>
+                                        </tr>
+                                    ) : salesError ? (
+                                        <tr>
+                                            <td colSpan="4" style={{ padding: '40px', textAlign: 'center', color: '#ff4757' }}>{salesError}</td>
+                                        </tr>
+                                    ) : sales.length === 0 ? (
                                         <tr>
                                             <td colSpan="4" style={{ padding: '40px', textAlign: 'center', color: '#666' }}>Aucune vente ce jour-là.</td>
                                         </tr>
