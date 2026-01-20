@@ -75,7 +75,7 @@ const SellerDashboard = ({ onLogout }) => {
                 <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
                     <div>
                         <h1 style={{ color: 'var(--color-gold)', fontFamily: 'Playfair Display' }}>M'NISE COSMETICS</h1>
-                        <p style={{ color: '#888' }}>Espace Vente</p>
+                        <p style={{ color: '#888' }}>Nouvelle Vente</p>
                     </div>
                     <button onClick={onLogout} style={{ color: '#888', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <LogOut size={16} /> Quitter
@@ -154,7 +154,7 @@ const SellerDashboard = ({ onLogout }) => {
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '1.4rem', color: 'var(--color-gold)', fontWeight: 'bold' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Tags size={20} /> A Payer</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Tags size={20} /> Total</span>
                             {isEditingPrice ? (
                                 <input
                                     type="number" autoFocus
@@ -195,7 +195,7 @@ const SellerDashboard = ({ onLogout }) => {
                     )}
 
                     <GoldButton onClick={handleCheckout} disabled={cart.length === 0} style={{ width: '100%' }}>
-                        Valider la vente
+                        Valider
                     </GoldButton>
                 </div>
             </GlassCard>
@@ -213,7 +213,7 @@ const SellerDashboard = ({ onLogout }) => {
                         style={{ color: mobileTab === 'products' ? 'var(--color-gold)' : '#666', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}
                     >
                         <ShoppingCart size={20} />
-                        <span style={{ fontSize: '0.7rem' }}>Boutique</span>
+                        <span style={{ fontSize: '0.7rem' }}>Nouvelle Vente</span>
                     </button>
                     <button
                         onClick={() => setMobileTab('cart')}

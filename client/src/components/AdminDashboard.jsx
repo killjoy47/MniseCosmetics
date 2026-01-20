@@ -271,7 +271,7 @@ const AdminDashboard = ({ onLogout }) => {
                             </select>
                             <div style={{ display: 'flex', gap: '10px', marginTop: '10px', justifyContent: 'flex-end' }}>
                                 <button type="button" onClick={closeProdModal} style={{ color: '#888', padding: '10px' }}>Annuler</button>
-                                <GoldButton type="submit">Enregistrer</GoldButton>
+                                <GoldButton type="submit">Valider</GoldButton>
                             </div>
                         </form>
                     </GlassCard>
