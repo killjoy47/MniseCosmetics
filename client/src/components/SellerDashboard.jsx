@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import GlassCard from './ui/GlassCard';
 import GoldButton from './ui/GoldButton';
 import { socket, getProducts, sellProducts, getCategories } from '../services/api';
-import Assistant from './Assistant';
-import { ShoppingCart, Check, Trash2, LogOut, Tags, AlertTriangle, Package, PlusCircle, Bot } from 'lucide-react';
+import { ShoppingCart, Check, Trash2, LogOut, Tags, AlertTriangle, Package, PlusCircle } from 'lucide-react';
 
 const SellerDashboard = ({ onLogout }) => {
     const [products, setProducts] = useState([]);
@@ -184,12 +183,6 @@ const SellerDashboard = ({ onLogout }) => {
                 </div>
             </div>
 
-            {mobileTab === 'assistant' && (
-                <div style={{ flex: 1, padding: '20px' }}>
-                    <Assistant role="seller" />
-                </div>
-            )}
-
             {/* Cart Sidebar */}
             <GlassCard className="sidebar-container" style={{ display: (window.innerWidth > 1024 || mobileTab === 'cart') ? 'flex' : 'none', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -301,13 +294,6 @@ const SellerDashboard = ({ onLogout }) => {
                             )}
                         </div>
                         <span style={{ fontSize: '0.7rem' }}>Panier</span>
-                    </button>
-                    <button
-                        onClick={() => setMobileTab('assistant')}
-                        style={{ color: mobileTab === 'assistant' ? 'var(--color-gold)' : '#666', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}
-                    >
-                        <Bot size={20} />
-                        <span style={{ fontSize: '0.7rem' }}>Assistant</span>
                     </button>
                 </div>
             )}
