@@ -5,6 +5,7 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const { Product, Category, User, Sale } = require('./models');
+const { parseAssistantQuery } = require('./assistant');
 
 const app = express();
 const server = http.createServer(app);
@@ -221,6 +222,16 @@ app.get('/api/sales', async (req, res) => {
     } catch (err) {
         console.error(`[GET /api/sales] Error: ${err.message}`);
         res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+app.post('/api/assistant', async (req, res) => {
+    const { query, role } = req.body;
+    try {
+        const response = await parseAssistantQuery(query, role);
+        res.json({ response });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import GlassCard from './ui/GlassCard';
 import GoldButton from './ui/GoldButton';
+import Assistant from './Assistant';
 import { socket, saveProduct, getProducts, getCategories, saveCategories, getSales } from '../services/api';
 import { Plus, Edit, List, Package, History, AlertTriangle, PlusCircle } from 'lucide-react';
 
@@ -130,6 +131,12 @@ const AdminDashboard = ({ onLogout }) => {
                             style={{ color: tab === 'sales' ? 'var(--color-gold)' : '#666', fontWeight: 'bold' }}
                         >
                             Historique
+                        </button>
+                        <button
+                            onClick={() => setTab('assistant')}
+                            style={{ color: tab === 'assistant' ? 'var(--color-gold)' : '#666', fontWeight: 'bold' }}
+                        >
+                            Assistant ✨
                         </button>
                     </nav>
                     <button onClick={onLogout} style={{ color: '#888', textDecoration: 'underline' }}>Déconnexion</button>
@@ -353,6 +360,9 @@ const AdminDashboard = ({ onLogout }) => {
                         </div>
                     </GlassCard>
                 </>
+            )}
+            {tab === 'assistant' && (
+                <Assistant role="admin" />
             )}
 
             {tab === 'categories' && (

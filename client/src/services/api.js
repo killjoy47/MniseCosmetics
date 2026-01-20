@@ -98,3 +98,12 @@ export const resetPassword = async (masterKey, newAdminPwd, newSellerPwd) => {
     });
     return res.json();
 };
+
+export const askAssistant = async (query, role) => {
+    const res = await fetch(`${API_URL}/assistant`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, role }),
+    });
+    return res.json();
+};
