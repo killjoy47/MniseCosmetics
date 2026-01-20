@@ -1,21 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
 :root {
   --font-heading: 'Playfair Display', serif;
   --font-body: 'Inter', sans-serif;
-  
+
   --color-bg: #1a1a1a;
   --color-bg-soft: #242424;
   --color-text: #f9f9f9;
   --color-text-muted: #a0a0a0;
-  
+
   --color-gold: #d4af37;
   --color-gold-hover: #b5952f;
-  
+
   --glass-bg: rgba(255, 255, 255, 0.05);
   --glass-border: 1px solid rgba(255, 255, 255, 0.1);
   --glass-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 
 * {
   margin: 0;
@@ -31,7 +32,11 @@ body {
   min-height: 100vh;
 }
 
-h1, h2, h3, h4, h5 {
+h1,
+h2,
+h3,
+h4,
+h5 {
   font-family: var(--font-heading);
   letter-spacing: 0.5px;
 }
@@ -47,13 +52,16 @@ button {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--color-bg);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--color-bg-soft);
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-gold);
 }
