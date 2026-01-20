@@ -83,8 +83,8 @@ const AdminDashboard = ({ onLogout }) => {
                     <h1 style={{ color: 'var(--color-gold)', fontFamily: 'Playfair Display' }}>M'NISE COSMETICS</h1>
                     <p style={{ color: '#888' }}>Dashboard Patronne</p>
                 </div>
-                <div style={{ display: 'flex', gap: '30px', alignItems: 'center' }}>
-                    <nav style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <nav style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', background: 'rgba(255,255,255,0.05)', padding: '5px 15px', borderRadius: '10px' }}>
                         <button
                             onClick={() => setTab('products')}
                             style={{ color: tab === 'products' ? 'var(--color-gold)' : '#666', fontWeight: 'bold' }}
@@ -228,9 +228,12 @@ const AdminDashboard = ({ onLogout }) => {
                                                 {p.stock <= p.securityStock && p.stock > 0 && <AlertTriangle size={14} color="#ffa502" />}
                                             </div>
                                         </td>
-                                        <td style={{ padding: '15px 24px' }}>
-                                            <button onClick={() => openProdModal(p)} style={{ color: 'var(--color-gold)' }}>
+                                        <td style={{ padding: '15px 24px', display: 'flex', gap: '10px' }}>
+                                            <button onClick={() => openProdModal(p)} style={{ color: 'var(--color-gold)' }} title="Modifier">
                                                 <Edit size={18} />
+                                            </button>
+                                            <button onClick={() => { setSelCategory(p.category); setSelProduct(p); setTab('stock'); }} style={{ color: '#2ed573' }} title="Réapprovisionner">
+                                                <PlusCircle size={18} />
                                             </button>
                                         </td>
                                     </tr>
@@ -252,6 +255,12 @@ const AdminDashboard = ({ onLogout }) => {
                                 onChange={e => setFilterDate(e.target.value)}
                                 style={{ ...inputStyle, background: 'rgba(255,255,255,0.05)', borderColor: 'var(--color-gold)' }}
                             />
+                            <button
+                                onClick={() => setFilterDate('')}
+                                style={{ marginTop: '10px', fontSize: '0.8rem', color: 'var(--color-gold)', textDecoration: 'underline' }}
+                            >
+                                Tout voir / Toutes les dates
+                            </button>
                         </div>
                         <GlassCard style={{ flex: 2, padding: '20px', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--color-gold)' }}>
                             <h3 style={{ color: '#888', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '5px' }}>Bilan de la journée</h3>
