@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import GlassCard from './ui/GlassCard';
 import GoldButton from './ui/GoldButton';
-import { socket, getProducts, sellProducts } from '../services/api';
-import { ShoppingCart, Check, Trash2, LogOut, Tags, AlertTriangle } from 'lucide-react';
+import { socket, getProducts, sellProducts, getCategories } from '../services/api';
+import { ShoppingCart, Check, Trash2, LogOut, Tags, AlertTriangle, Package, PlusCircle } from 'lucide-react';
 
 const SellerDashboard = ({ onLogout }) => {
     const [products, setProducts] = useState([]);
@@ -13,10 +13,18 @@ const SellerDashboard = ({ onLogout }) => {
     const [customTotal, setCustomTotal] = useState('');
     const [isEditingPrice, setIsEditingPrice] = useState(false);
     const [clientNumber, setClientNumber] = useState('');
-    const [mobileTab, setMobileTab] = useState('products'); // 'products' | 'cart'
+    const [mobileTab, setMobileTab] = useState('products');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Structured Entry State
+    const [categories, setCategories] = useState([]);
+    const [selCategory, setSelCategory] = useState('');
+    const [selProduct, setSelProduct] = useState(null);
+    const [selQuantity, setSelQuantity] = useState(1);
 
     useEffect(() => {
         getProducts().then(setProducts);
+        getCategories().then(setCategories);
         socket.on('stock_update', setProducts);
         return () => socket.off('stock_update');
     }, []);
@@ -47,12 +55,13 @@ const SellerDashboard = ({ onLogout }) => {
     const finalPrice = isEditingPrice && customTotal ? Number(customTotal) : calculatedTotal;
 
     const handleCheckout = async () => {
-        if (cart.length === 0) return;
+        if (cart.length === 0 || isSubmitting) return;
         if (!clientNumber) {
             alert("Veuillez entrer le numéro du client avant de valider la vente.");
             return;
         }
 
+        setIsSubmitting(true);
         const items = cart.map(item => ({ id: item.product.id, quantity: item.quantity }));
         const res = await sellProducts(items, finalPrice, clientNumber);
 
@@ -65,6 +74,19 @@ const SellerDashboard = ({ onLogout }) => {
             setTimeout(() => setSuccessMsg(''), 3000);
         } else {
             alert("Erreur: " + res.message);
+        }
+        setIsSubmitting(false);
+    };
+
+    const handleQuickAdd = () => {
+        if (!selProduct || selQuantity <= 0) return;
+        addToCart(selProduct);
+        // If they want more than 1 via the dropdown, we need to adjust addToCart or repeat it
+        // Simpler for now: just add once, or loop
+        if (selQuantity > 1) {
+            for (let i = 1; i < selQuantity; i++) {
+                addToCart(selProduct);
+            }
         }
     };
 
@@ -81,6 +103,48 @@ const SellerDashboard = ({ onLogout }) => {
                         <LogOut size={16} /> Quitter
                     </button>
                 </header>
+
+                {/* Structured Selection Form */}
+                <GlassCard style={{ padding: '20px', marginBottom: '30px', background: 'rgba(212, 175, 55, 0.05)', borderRadius: '16px', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'flex-end' }}>
+                        <div style={{ flex: 1, minWidth: '150px' }}>
+                            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-gold)', marginBottom: '5px' }}>Catégorie</label>
+                            <select
+                                value={selCategory}
+                                onChange={e => { setSelCategory(e.target.value); setSelProduct(null); }}
+                                style={selectStyle}
+                            >
+                                <option value="">Choisir...</option>
+                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                        <div style={{ flex: 1, minWidth: '150px' }}>
+                            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-gold)', marginBottom: '5px' }}>Produit</label>
+                            <select
+                                value={selProduct?.id || ''}
+                                onChange={e => setSelProduct(products.find(p => p.id === e.target.value))}
+                                style={selectStyle}
+                            >
+                                <option value="">Choisir...</option>
+                                {products.filter(p => !selCategory || p.category === selCategory).map(p => (
+                                    <option key={p.id} value={p.id}>{p.name} ({p.stock})</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div style={{ width: '80px' }}>
+                            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-gold)', marginBottom: '5px' }}>Quantité</label>
+                            <input
+                                type="number" min="1"
+                                value={selQuantity}
+                                onChange={e => setSelQuantity(Number(e.target.value))}
+                                style={selectStyle}
+                            />
+                        </div>
+                        <GoldButton onClick={handleQuickAdd} disabled={!selProduct} style={{ padding: '10px 20px', fontSize: '0.9rem' }}>
+                            <PlusCircle size={18} /> Ajouter
+                        </GoldButton>
+                    </div>
+                </GlassCard>
 
                 <div className="product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
                     {products.map(p => (
@@ -194,8 +258,8 @@ const SellerDashboard = ({ onLogout }) => {
                         </div>
                     )}
 
-                    <GoldButton onClick={handleCheckout} disabled={cart.length === 0} style={{ width: '100%' }}>
-                        Valider
+                    <GoldButton onClick={handleCheckout} disabled={cart.length === 0 || isSubmitting} style={{ width: '100%' }}>
+                        {isSubmitting ? 'Chargement...' : 'Valider'}
                     </GoldButton>
                 </div>
             </GlassCard>
@@ -235,6 +299,17 @@ const SellerDashboard = ({ onLogout }) => {
             )}
         </div>
     );
+};
+
+const selectStyle = {
+    width: '100%',
+    background: 'rgba(0,0,0,0.5)',
+    border: '1px solid #444',
+    borderRadius: '8px',
+    color: '#fff',
+    padding: '10px',
+    outline: 'none',
+    fontSize: '0.9rem'
 };
 
 export default SellerDashboard;
