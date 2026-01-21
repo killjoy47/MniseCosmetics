@@ -359,8 +359,16 @@ const AdminDashboard = ({ onLogout }) => {
                                                     {new Date(sale.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                                                 </td>
                                                 <td style={{ padding: '15px 24px', fontWeight: 'bold' }}>{sale.clientNumber || 'Anonyme'}</td>
-                                                <td style={{ padding: '15px 24px', color: '#888', fontSize: '0.9rem' }}>
-                                                    {sale.items.map(it => `${it.quantity}x ${it.name}`).join(', ')}
+                                                <td style={{ padding: '15px 24px', color: '#ccc', fontSize: '0.9rem' }}>
+                                                    {sale.items && sale.items.length > 0 ? (
+                                                        sale.items.map((it, idx) => (
+                                                            <div key={idx} style={{ marginBottom: '4px' }}>
+                                                                <span style={{ color: 'var(--color-gold)', fontWeight: 'bold' }}>{it.quantity}x</span> {it.name}
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <span style={{ color: '#666', fontStyle: 'italic' }}>Détails non disponibles</span>
+                                                    )}
                                                 </td>
                                                 <td style={{ padding: '15px 24px', color: 'var(--color-gold)', fontWeight: 'bold' }}>
                                                     {sale.totalPrice.toLocaleString()} FCFA
