@@ -15,7 +15,12 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "x-role"],
+    maxAge: 86400 // Cache OPTIONS for 24 hours to boost speed
+}));
 app.use(express.json());
 
 // Authorization Middleware
