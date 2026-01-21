@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import GlassCard from './ui/GlassCard';
 import GoldButton from './ui/GoldButton';
-import { socket, getProducts, sellProducts, getCategories } from '../services/api';
-import { ShoppingCart, Check, Trash2, LogOut, Tags, AlertTriangle, Package, PlusCircle, Search } from 'lucide-react';
+import { socket, getProducts, sellProducts, getCategories, getSales } from '../services/api';
+import { ShoppingCart, Check, Trash2, LogOut, Tags, AlertTriangle, Package, PlusCircle, Search, History, RefreshCw } from 'lucide-react';
 
 const SellerDashboard = ({ onLogout }) => {
     const [products, setProducts] = useState([]);
@@ -24,12 +24,35 @@ const SellerDashboard = ({ onLogout }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showResults, setShowResults] = useState(false);
 
+    // Sales History State
+    const [sales, setSales] = useState([]);
+    const [isLoadingSales, setIsLoadingSales] = useState(false);
+    const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+
     useEffect(() => {
         getProducts().then(setProducts);
         getCategories().then(setCategories);
         socket.on('stock_update', setProducts);
         return () => socket.off('stock_update');
     }, []);
+
+    const fetchSales = async () => {
+        setIsLoadingSales(true);
+        try {
+            const data = await getSales(filterDate);
+            setSales(data);
+        } catch (err) {
+            console.error("Erreur lors de la récupération des ventes:", err);
+        } finally {
+            setIsLoadingSales(false);
+        }
+    };
+
+    useEffect(() => {
+        if (mobileTab === 'history') {
+            fetchSales();
+        }
+    }, [mobileTab, filterDate]);
 
     const addToCart = (product) => {
         if (product.stock === 0) return;
@@ -250,6 +273,83 @@ const SellerDashboard = ({ onLogout }) => {
                 </div>
             </div>
 
+            {/* Sales History Content */}
+            <div className="main-content" style={{ display: mobileTab === 'history' ? 'block' : 'none' }}>
+                <header className="dashboard-header" style={{ marginBottom: '30px' }}>
+                    <h1 style={{ color: 'var(--color-gold)', fontFamily: 'Playfair Display' }}>Historique des Ventes</h1>
+                    <p style={{ color: '#888' }}>Vos ventes de la journée</p>
+                </header>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginBottom: '30px' }}>
+                    <GlassCard style={{ flex: 1, padding: '20px' }}>
+                        <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-gold)', marginBottom: '10px' }}>Choisir une date</label>
+                        <input
+                            type="date"
+                            value={filterDate}
+                            onChange={e => setFilterDate(e.target.value)}
+                            style={selectStyle}
+                        />
+                        <button
+                            onClick={fetchSales}
+                            style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '15px', color: 'var(--color-gold)', fontSize: '0.9rem' }}
+                        >
+                            <RefreshCw size={16} /> Actualiser
+                        </button>
+                    </GlassCard>
+                    <GlassCard style={{ flex: 2, padding: '20px', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--color-gold)' }}>
+                        <h3 style={{ color: '#888', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '5px' }}>Bilan de la journée</h3>
+                        <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-gold)' }}>
+                            {sales.reduce((acc, s) => acc + s.totalPrice, 0).toLocaleString()} FCFA
+                        </p>
+                    </GlassCard>
+                </div>
+
+                <GlassCard style={{ overflow: 'hidden', padding: 0 }}>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
+                            <thead style={{ background: 'rgba(255,255,255,0.05)', color: '#888' }}>
+                                <tr>
+                                    <th style={{ padding: '15px 24px' }}>Heure</th>
+                                    <th style={{ padding: '15px 24px' }}>Client</th>
+                                    <th style={{ padding: '15px 24px' }}>Articles</th>
+                                    <th style={{ padding: '15px 24px' }}>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {isLoadingSales ? (
+                                    <tr><td colSpan="4" style={{ padding: '40px', textAlign: 'center', color: 'var(--color-gold)' }}>Chargement...</td></tr>
+                                ) : sales.length === 0 ? (
+                                    <tr><td colSpan="4" style={{ padding: '40px', textAlign: 'center', color: '#666' }}>Aucune vente pour cette période.</td></tr>
+                                ) : (
+                                    sales.map(sale => (
+                                        <tr key={sale._id} style={{ borderBottom: '1px solid #333' }}>
+                                            <td style={{ padding: '15px 24px', fontSize: '0.9rem' }}>
+                                                {new Date(sale.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                            </td>
+                                            <td style={{ padding: '15px 24px', fontWeight: 'bold' }}>{sale.clientNumber || 'Anonyme'}</td>
+                                            <td style={{ padding: '15px 24px', color: '#ccc', fontSize: '0.9rem' }}>
+                                                {sale.items && sale.items.length > 0 ? (
+                                                    sale.items.map((it, idx) => (
+                                                        <div key={idx} style={{ marginBottom: '4px' }}>
+                                                            <span style={{ color: 'var(--color-gold)', fontWeight: 'bold' }}>{it.quantity}x</span> {it.name}
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <span style={{ color: '#666', fontStyle: 'italic' }}>Détails non disponibles</span>
+                                                )}
+                                            </td>
+                                            <td style={{ padding: '15px 24px', color: 'var(--color-gold)', fontWeight: 'bold' }}>
+                                                {sale.totalPrice.toLocaleString()} FCFA
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </GlassCard>
+            </div>
+
             {/* Cart Sidebar */}
             <GlassCard className="sidebar-container" style={{ display: (window.innerWidth > 1024 || mobileTab === 'cart') ? 'flex' : 'none', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -361,6 +461,13 @@ const SellerDashboard = ({ onLogout }) => {
                             )}
                         </div>
                         <span style={{ fontSize: '0.7rem' }}>Panier</span>
+                    </button>
+                    <button
+                        onClick={() => setMobileTab('history')}
+                        style={{ color: mobileTab === 'history' ? 'var(--color-gold)' : '#666', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}
+                    >
+                        <History size={20} />
+                        <span style={{ fontSize: '0.7rem' }}>Historique</span>
                     </button>
                 </div>
             )}
