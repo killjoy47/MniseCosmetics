@@ -62,18 +62,32 @@ const parseAssistantQuery = async (query, role) => {
 
     // --- SALES QUERIES (Admin only for full details) ---
     if (q.includes('vente') || q.includes('bilan') || q.includes('encaissé') || q.includes('gagné')) {
-        let queryDate = new Date();
+        const now = new Date();
+        let start = new Date(now);
+        let end = new Date(now);
         let dateLabel = "aujourd'hui";
 
-        if (q.includes('hier')) {
-            queryDate.setDate(queryDate.getDate() - 1);
-            dateLabel = "hier";
-        }
-
-        const start = new Date(queryDate);
+        // Reset times for range calculations
         start.setUTCHours(0, 0, 0, 0);
-        const end = new Date(queryDate);
         end.setUTCHours(23, 59, 59, 999);
+
+        if (q.includes('hier')) {
+            start.setUTCDate(start.getUTCDate() - 1);
+            end.setUTCDate(end.getUTCDate() - 1);
+            dateLabel = "hier";
+        } else if (q.includes('semaine')) {
+            // Get Monday of current week
+            const day = now.getUTCDay(); // 0 (Sun) to 6 (Sat)
+            const diff = now.getUTCDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
+            start.setUTCDate(diff);
+            dateLabel = "cette semaine";
+        } else if (q.includes('mois')) {
+            start.setUTCDate(1);
+            dateLabel = "ce mois-ci";
+        } else if (q.includes('an') || q.includes('année')) {
+            start.setUTCMonth(0, 1);
+            dateLabel = "cette année";
+        }
 
         const sales = await Sale.find({ createdAt: { $gte: start, $lte: end } });
         const total = sales.reduce((acc, s) => acc + s.totalPrice, 0);
