@@ -11,6 +11,7 @@ function App() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('userRole'); // Clear security headers
     setRole(null);
   };
 

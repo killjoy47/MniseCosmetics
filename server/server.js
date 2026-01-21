@@ -18,6 +18,19 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Authorization Middleware
+const auth = (roles = []) => {
+    return (req, res, next) => {
+        const userRole = req.headers['x-role'];
+        if (!userRole) return res.status(401).json({ message: "Role non spécifié (Security Header)" });
+        if (roles.length && !roles.includes(userRole)) {
+            return res.status(403).json({ message: "Accès refusé : privilèges insuffisants" });
+        }
+        req.userRole = userRole;
+        next();
+    };
+};
+
 // MongoDB Connection
 const connectDB = async () => {
     try {
@@ -70,7 +83,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-app.post('/api/reset-password', async (req, res) => {
+app.post('/api/reset-password', auth(['admin']), async (req, res) => {
     const { masterKey, newAdminPwd, newSellerPwd } = req.body;
     try {
         const master = await User.findOne({ role: 'masterKey' });
@@ -87,7 +100,7 @@ app.post('/api/reset-password', async (req, res) => {
 });
 
 // --- PRODUCTS & CATEGORIES ---
-app.get('/api/products', async (req, res) => {
+app.get('/api/products', auth(['admin', 'seller']), async (req, res) => {
     const products = await Product.find();
     // Rename _id to id for frontend compatibility if needed, or handle in frontend. 
     // Mongoose uses _id. Let's map it.
@@ -102,7 +115,7 @@ app.get('/api/products', async (req, res) => {
     res.json(mapped);
 });
 
-app.post('/api/products', async (req, res) => {
+app.post('/api/products', auth(['admin']), async (req, res) => {
     const { id, name, price, stock, category, securityStock } = req.body;
     try {
         if (id) {
@@ -124,12 +137,12 @@ app.post('/api/products', async (req, res) => {
     }
 });
 
-app.get('/api/categories', async (req, res) => {
+app.get('/api/categories', auth(['admin', 'seller']), async (req, res) => {
     const cats = await Category.find();
     res.json(cats.map(c => c.name));
 });
 
-app.post('/api/categories', async (req, res) => {
+app.post('/api/categories', auth(['admin']), async (req, res) => {
     const { categories } = req.body; // Expects simplified list handling from logic v1
     // Actually, v1 logic sent full array. Let's adapt. 
     // The frontend sends the full list of strings. We should sync.
@@ -151,7 +164,7 @@ app.post('/api/categories', async (req, res) => {
 });
 
 // --- SALES ---
-app.post('/api/sell', async (req, res) => {
+app.post('/api/sell', auth(['admin', 'seller']), async (req, res) => {
     const { items, totalPrice, clientNumber } = req.body;
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -198,7 +211,7 @@ app.post('/api/sell', async (req, res) => {
     }
 });
 
-app.get('/api/sales', async (req, res) => {
+app.get('/api/sales', auth(['admin', 'seller']), async (req, res) => {
     try {
         const { date } = req.query;
         let query = {};
@@ -225,7 +238,7 @@ app.get('/api/sales', async (req, res) => {
     }
 });
 
-app.post('/api/assistant', async (req, res) => {
+app.post('/api/assistant', auth(['admin', 'seller']), async (req, res) => {
     const { query, role } = req.body;
     try {
         const response = await parseAssistantQuery(query, role);

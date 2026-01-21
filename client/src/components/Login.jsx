@@ -18,6 +18,7 @@ const Login = ({ onLogin }) => {
     const handleLogin = async (role) => {
         const res = await login(role, password);
         if (res.success) {
+            localStorage.setItem('userRole', role); // Store role for API headers
             onLogin(role);
         } else {
             setError(res.message);
