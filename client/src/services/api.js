@@ -38,6 +38,14 @@ export const saveProduct = async (product) => {
     return res.json();
 };
 
+export const deleteProduct = async (id) => {
+    const res = await fetch(`${API_URL}/products/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+    });
+    return res.json();
+};
+
 // --- CATEGORIES ---
 export const getCategories = async () => {
     const res = await fetch(`${API_URL}/categories`, { headers: getHeaders() });
@@ -49,6 +57,14 @@ export const saveCategories = async (categories) => {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({ categories }),
+    });
+    return res.json();
+};
+
+export const deleteCategory = async (name) => {
+    const res = await fetch(`${API_URL}/categories/${encodeURIComponent(name)}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
     });
     return res.json();
 };

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import GlassCard from './ui/GlassCard';
 import GoldButton from './ui/GoldButton';
 import Assistant from './Assistant';
-import { socket, saveProduct, getProducts, getCategories, saveCategories, getSales } from '../services/api';
-import { Plus, Edit, List, Package, History, AlertTriangle, PlusCircle } from 'lucide-react';
+import { socket, saveProduct, getProducts, getCategories, saveCategories, getSales, deleteProduct, deleteCategory } from '../services/api';
+import { Plus, Edit, List, Package, History, AlertTriangle, PlusCircle, Trash2 } from 'lucide-react';
 
 const AdminDashboard = ({ onLogout }) => {
     const [tab, setTab] = useState('products'); // 'products' | 'categories' | 'sales'
@@ -94,6 +94,19 @@ const AdminDashboard = ({ onLogout }) => {
         await saveCategories(newCats);
         setCategories(newCats);
         setNewCatName('');
+    };
+
+    const handleDeleteProduct = async (id) => {
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
+            await deleteProduct(id);
+        }
+    };
+
+    const handleDeleteCategory = async (catName) => {
+        if (window.confirm(`Supprimer la catégorie "${catName}" ?`)) {
+            await deleteCategory(catName);
+            setCategories(categories.filter(c => c !== catName));
+        }
     };
 
     const openProdModal = (product = null) => {
@@ -277,6 +290,9 @@ const AdminDashboard = ({ onLogout }) => {
                                             <button onClick={() => { setSelCategory(p.category); setSelProduct(p); setTab('stock'); }} style={{ color: '#2ed573' }} title="Réapprovisionner">
                                                 <PlusCircle size={18} />
                                             </button>
+                                            <button onClick={() => handleDeleteProduct(p.id)} style={{ color: '#ff6b6b' }} title="Supprimer">
+                                                <Trash2 size={18} />
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -407,6 +423,9 @@ const AdminDashboard = ({ onLogout }) => {
                             <div key={idx} style={{ padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <Package size={18} color="var(--color-gold)" />
                                 {cat}
+                                <button onClick={() => handleDeleteCategory(cat)} style={{ marginLeft: 'auto', color: '#ff6b6b' }} title="Supprimer">
+                                    <Trash2 size={16} />
+                                </button>
                             </div>
                         ))}
                     </div>

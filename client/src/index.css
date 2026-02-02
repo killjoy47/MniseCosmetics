@@ -48,6 +48,28 @@ button {
   font-family: inherit;
 }
 
+/* FORCE GOLD BUTTON STYLES */
+.gold-btn {
+  background: linear-gradient(135deg, #d4af37 0%, #b5952f 100%) !important;
+  color: #000 !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.gold-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+}
+
+.gold-btn:disabled {
+  opacity: 0.7 !important;
+  /* High visibility for disabled state */
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  filter: grayscale(0.3);
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;

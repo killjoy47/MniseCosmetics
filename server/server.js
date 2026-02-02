@@ -142,6 +142,20 @@ app.post('/api/products', auth(['admin']), async (req, res) => {
     }
 });
 
+app.delete('/api/products/:id', auth(['admin']), async (req, res) => {
+    try {
+        await Product.findByIdAndDelete(req.params.id);
+        const products = await Product.find();
+        const mapped = products.map(p => ({
+            id: p._id, name: p.name, price: p.price, stock: p.stock, category: p.category, securityStock: p.securityStock || 0
+        }));
+        io.emit('stock_update', mapped);
+        res.json({ success: true, message: "Produit supprimé", products: mapped });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 app.get('/api/categories', auth(['admin', 'seller']), async (req, res) => {
     const cats = await Category.find();
     res.json(cats.map(c => c.name));
@@ -165,6 +179,15 @@ app.post('/api/categories', auth(['admin']), async (req, res) => {
         res.json({ success: true, categories });
     } catch (err) {
         res.status(500).json({ success: false });
+    }
+});
+
+app.delete('/api/categories/:name', auth(['admin']), async (req, res) => {
+    try {
+        await Category.deleteOne({ name: req.params.name });
+        res.json({ success: true, message: "Catégorie supprimée" });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 
