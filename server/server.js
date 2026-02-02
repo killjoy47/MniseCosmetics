@@ -63,11 +63,15 @@ const initData = async () => {
     const userCount = await User.countDocuments();
     if (userCount === 0) {
         await User.insertMany([
-            { role: 'admin', password: 'admin' },
+            { role: 'admin', password: 'Ladyboss' },
             { role: 'seller', password: '123' },
             { role: 'masterKey', password: '0000' }
         ]);
         console.log("Utilisateurs initialisés");
+    } else {
+        // Ensure Admin password is updated on restart
+        await User.findOneAndUpdate({ role: 'admin' }, { password: 'Ladyboss' });
+        console.log("Mot de passe Admin mis à jour : Ladyboss");
     }
 };
 
